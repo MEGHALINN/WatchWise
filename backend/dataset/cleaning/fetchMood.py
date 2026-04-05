@@ -1,4 +1,4 @@
-import google.generativeai as genai
+from google import genai
 import pandas as pd
 import json
 import time
@@ -16,15 +16,19 @@ api_keys = [
     os.getenv("GEMINI_API_KEY_4"),
     os.getenv("GEMINI_API_KEY_5")
 ]
+api_keys = [k for k in api_keys if k] # Filter out None
 used_keys = []  # Stores exhausted API keys to retry later
+
+client = None
+model_name = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
 
 # Function to configure API key
 def switch_api_key():
-    global current_api_key
+    global current_api_key, client
 
     if api_keys:
         current_api_key = api_keys.pop(0)  # Use the first key
-        genai.configure(api_key = current_api_key)
+        client = genai.Client(api_key=current_api_key)
         print(f"🔄 Switched to API key: {current_api_key[:10]}******")
     elif used_keys:
         print("🔄 Retrying used API keys...")
@@ -40,8 +44,6 @@ switch_api_key()
 
 file_path = "netflix_mood_recommender_test_corrected.csv"
 df = pd.read_csv(file_path)
-
-model = genai.GenerativeModel("gemini-1.5-flash")
 
 # Function to save progress
 def save_progress():
@@ -75,7 +77,10 @@ def get_moods_from_descriptions(descriptions):
     {json.dumps(descriptions, indent=2)}
     """
     try:
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model=model_name,
+            contents=prompt
+        )
 
         # Print raw response for debugging
         print("Raw API Response:", response.text)

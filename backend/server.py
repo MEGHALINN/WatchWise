@@ -13,9 +13,11 @@ from Utilities.profile import Profile
 from functools import wraps
 import jwt
 import datetime
+from dotenv import load_dotenv
+load_dotenv()
 
-client = pymongo.MongoClient("mongodb://localhost:27017/")
-db = client["WatchWise"]
+client = pymongo.MongoClient(os.getenv("MONGO_URI", "mongodb://localhost:27017/"))
+db = client[os.getenv("DATABASE_NAME", "WatchWise")]
 
 # Initialize AI Extractor
 chatbot = Chatbot()

@@ -1,15 +1,16 @@
 import os
 from dotenv import load_dotenv
-import google.generativeai as genai
+from google import genai
 from flask import jsonify
+
+load_dotenv()
 
 class Chatbot:
     def __init__(self):
         self.session_data = {}
-        load_dotenv()
-        gemini_api_key = os.getenv("GEMINI_API_KEY_CHATBOT")
-        genai.configure(api_key = gemini_api_key)
-        self.model = genai.GenerativeModel("gemini-1.5-flash")
+        api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY_CHATBOT")
+        self.client = genai.Client(api_key=api_key)
+        self.model_name = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
 
     def process_input(self, user_id, user_input):
         if not user_input:
@@ -63,7 +64,10 @@ class Chatbot:
 
     def get_extracted_data(self, prompt):
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
             mood = response.text.strip()
 
             print("AI Response:\n", mood)

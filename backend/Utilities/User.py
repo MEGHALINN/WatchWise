@@ -8,8 +8,13 @@ from flask_login import UserMixin
 
 from Utilities.movies import Movies
 
-client = pymongo.MongoClient("mongodb://localhost:27017/")
-db = client["WatchWise"]
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+client = pymongo.MongoClient(os.getenv("MONGO_URI", "mongodb://localhost:27017/"))
+db = client[os.getenv("DATABASE_NAME", "WatchWise")]
 
 users_collection = db["users"]  # For user_id generation
 

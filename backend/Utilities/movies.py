@@ -1,9 +1,15 @@
+import os
 import pymongo
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class Movies:
     def __init__(self):
-        self.client = pymongo.MongoClient("mongodb://localhost:27017/")
-        self.db = self.client["WatchWise"]
+        mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
+        db_name = os.getenv("DATABASE_NAME", "WatchWise")
+        self.client = pymongo.MongoClient(mongo_uri)
+        self.db = self.client[db_name]
         
     def fetch_rating(self, user_id, show_id):
         users_collection = self.db['users']

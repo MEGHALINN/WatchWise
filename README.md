@@ -78,16 +78,27 @@
   <img src="https://github.com/dyingpotato890/WatchWise/blob/main/documents/UML%20Diagrams/Activity%20Diagram%20-%20WatchWise.png" width="60%">
 </p>
 
-## Installation
+### Installation
 
-### Prerequisites
+#### Prerequisites
 - Python 3.9 or later.
 - Node.js and npm.
 - MongoDB Server.
 
-### Steps
-#### NOTE: If you are using the project for the first time, ensure to set environment variables for GEMINI and MongoDB.
+#### Environment Setup
+Before running the application, you must set up your environment variables:
 
+1. Navigate to the `backend` directory.
+2. Copy the `.env.example` file to create a `.env` file:
+   ```bash
+   cp .env.example .env
+   ```
+3. Open `.env` and provide your configuration:
+   - **GEMINI_API_KEY**: Your API key from [Google AI Studio](https://aistudio.google.com/).
+   - **MONGO_URI**: Your MongoDB connection string (usually `mongodb://localhost:27017/`).
+   - **DATABASE_NAME**: The name of your database (e.g., `WatchWise`).
+
+#### Steps
 1. Clone the repository:
     ```bash
     git clone https://github.com/dyingpotato890/WatchWise.git
@@ -104,8 +115,7 @@
       ```
     - Run the backend:
       ```bash
-      cd ..
-      python backend/server.py
+      python server.py
       ```
 3. Set up the frontend:
     - Navigate to the frontend folder:

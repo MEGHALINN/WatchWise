@@ -113,6 +113,10 @@ Before running the application, you must set up your environment variables:
       ```bash
       pip install -r requirements.txt
       ```
+    - Configure Environment Variable:
+      ```bash
+      GEMINI_API_KEY_CHATBOT=your_gemini_api_key
+      ```     
     - Run the backend:
       ```bash
       python server.py
@@ -158,4 +162,4 @@ Contributions are welcome! Please follow these steps:
 4. [Niranjay Ajayan](https://github.com/dyingpotato890)
 
 ## License
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+This project is licensed under the GPL-3.0 License. See the `LICENSE` file for details.

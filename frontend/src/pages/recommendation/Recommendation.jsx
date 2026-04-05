@@ -6,14 +6,34 @@ import Loading from "../../components/Loading"; // ✅ Import Loading Page
 
 // Initial empty movie list
 const initialMovies = [];
-// Move this outside of fetchMovies to make it accessible
+
+// More reliable logo URLs
 const platformIcons = {
-  "Netflix": "https://upload.wikimedia.org/wikipedia/commons/0/0c/Netflix_2015_N_logo.svg", // Just the N
-  "Amazon Prime": "https://upload.wikimedia.org/wikipedia/commons/1/11/Amazon_Prime_Video_logo.svg", // Full "Prime Video" 
-  "Disney+": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Disney%2B_logo.svg", // Disney+ with plus
+  "Netflix": "https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg",
+  "Amazon Prime": "https://upload.wikimedia.org/wikipedia/commons/1/11/Amazon_Prime_Video_logo.svg",
+  "Disney+": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Disney%2B_logo.svg",
   "Hulu": "https://upload.wikimedia.org/wikipedia/commons/e/e4/Hulu_Logo.svg",
   "HBO Max": "https://upload.wikimedia.org/wikipedia/commons/1/17/HBO_Max_Logo.svg",
   "Apple TV+": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Apple_TV_Plus_logo.svg"
+};
+
+// Sub-component for individual platform icons to handle error state properly via React
+const PlatformIcon = ({ platform }) => {
+  const [imgError, setImgError] = useState(false);
+  const iconUrl = platformIcons[platform];
+
+  if (!iconUrl || imgError) {
+    return <span className="platform-name">{platform}</span>;
+  }
+
+  return (
+    <img
+      src={iconUrl}
+      alt={platform}
+      className={`platform-icon ${platform.toLowerCase().replace('+', 'plus').replace(' ', '-')}`}
+      onError={() => setImgError(true)}
+    />
+  );
 };
 
 // Function to fetch movies from the backend API
@@ -211,104 +231,81 @@ const Recommendation = () => {
   };
 
  
-// Replace your current conditional return with:
-if (loading) {
-  return (
-    <div className="loading-app-container">
-      <Navbar />
-      <div ref={vantaRef} className="vanta-background"></div>
-      <div className="vanta-overlay"></div>
-      <Loading />
-    </div>
-  );
-}
-
-if (!loading && movies.length === 0) {
-  return (
-    <div className="loading-app-container">
-      <Navbar />
-      <div ref={vantaRef} className="vanta-background"></div>
-      <div className="no-recommendations">
-        No recommendations are available. 
-      </div>
-    </div>
-  );
-}
-
   // Get the current movie details
   const movie = movies[currentIndex] || {};
-  const embedUrl = convertToEmbedUrl(movie.trailer || "");
 
+  // Main return with unified structure to keep Vanta background persistent
   return (
     <div>
       <Navbar />
-      {/* Vanta.js background effect */}
-      <div ref={vantaRef} style={{ position: "absolute", width: "100vw", height: "100vh", top: 0, left: 0, zIndex: -10 }}></div>
-      <div className="recommendation-container">
-        <div className="content-box fade-in">
-          {/* Trailer Section */}
-          <div className="trailer-container">
-            <iframe className="trailer" src={embedUrl} title="YouTube trailer" frameBorder="0" allowFullScreen></iframe>
+      {/* Vanta.js background effect - outside of conditional areas to prevent unmounting */}
+      <div 
+        ref={vantaRef} 
+        className="vanta-background"
+        style={{ position: "fixed", width: "100vw", height: "100vh", top: 0, left: 0, zIndex: -10 }}
+      ></div>
+      
+      {loading ? (
+        <div className="loading-app-container">
+          <div className="vanta-overlay"></div>
+          <Loading />
+        </div>
+      ) : movies.length === 0 ? (
+        <div className="loading-app-container">
+          <div className="no-recommendations">
+            No recommendations are available. 
           </div>
-          {/* Movie Details Section */}
-          <div className="movie-card" style={{ paddingTop: "0px" }}>
-            <div className="movie-title-info" style={{ paddingTop: "0px" }}>
-              <h2 style={{ marginBottom: "5px" }}>{movie.title || "Unknown Title"}</h2>
-              <p className="movie-info" style={{ textAlign: "left" }}>{movie.year || "Unknown Year"} • {movie.duration || "Unknown Duration"}</p>
+        </div>
+      ) : (
+        <div className="recommendation-container">
+          <div className="content-box fade-in">
+            {/* Trailer Section */}
+            <div className="trailer-container">
+              <iframe className="trailer" src={convertToEmbedUrl(movie.trailer || "")} title="YouTube trailer" frameBorder="0" allowFullScreen></iframe>
             </div>
-            <div className="movie-details">
-              <div className="info-section">
-                <p className="language"><strong>Language:</strong> {movie.language || "Unknown"}</p>
-                <p className="description">{movie.description || "No description available."}</p>
+            {/* Movie Details Section */}
+            <div className="movie-card" style={{ paddingTop: "0px" }}>
+              <div className="movie-title-info" style={{ paddingTop: "0px" }}>
+                <h2 style={{ marginBottom: "5px" }}>{movie.title || "Unknown Title"}</h2>
+                <p className="movie-info" style={{ textAlign: "left" }}>{movie.year || "Unknown Year"} • {movie.duration || "Unknown Duration"}</p>
+              </div>
+              <div className="movie-details">
+                <div className="info-section">
+                  <p className="language"><strong>Language:</strong> {movie.language || "Unknown"}</p>
+                  <p className="description">{movie.description || "No description available."}</p>
 
-                {/* Updated Available On Section */}
-                {movie.source && (
-                  <div className="available-on">
-                    <p><strong>Available on:</strong></p>
-                    <div className="platform-icons-row">
-                      {(() => {
-                        const platform = movie.source;
-                        const iconUrl = platformIcons[platform];
-                        return iconUrl ? (
-                          <img
-                            src={iconUrl}
-                            alt={platform}
-                            className={`platform-icon ${platform.toLowerCase().replace('+', 'plus')}`}
-                            onError={(e) => {
-                              e.target.onerror = null; // Prevent infinite loop
-                              e.target.style.display = 'none';
-                              // Optional: Insert text fallback
-                              const textNode = document.createTextNode(platform);
-                              e.target.parentNode.appendChild(textNode);
-                            }}
-                          />
-                        ) : (
-                          <span className="platform-name">{platform}</span>
-                        );
-                      })()}
+                  {/* Updated Available On Section */}
+                  {movie.source && (
+                    <div className="available-on">
+                      <p><strong>Available on:</strong></p>
+                      <div className="platform-icons-row">
+                        {movie.source.split(',').map((p) => {
+                          const platform = p.trim();
+                          return <PlatformIcon key={platform} platform={platform} />;
+                        })}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
+
+                <div className="poster-section">
+                  <img src={movie.poster || "placeholder.jpg"} alt={`${movie.title} Poster`} className="movie-poster" />
+                </div>
               </div>
 
-              <div className="poster-section">
-                <img src={movie.poster || "placeholder.jpg"} alt={`${movie.title} Poster`} className="movie-poster" />
+              {/* Action Buttons */}
+              <div className="button-container flex justify-center gap-6 mt-4">
+                <button className="group flex items-center justify-center w-16 h-16 bg-gray-800 rounded-full border-4 border-red-600 hover:bg-red-600 transition-all duration-300 transform hover:scale-110 hover:rotate-12 shadow-xl" aria-label="Reject Recommendation" onClick={handleHide}>
+                  <span className="material-symbols-outlined text-4xl group-hover:text-white">close</span>
+                </button>
+                <button className="group flex items-center justify-center w-16 h-16 bg-gray-800 rounded-full border-4 border-green-500 hover:bg-green-500 transition-all duration-300 transform hover:scale-110 hover:rotate-12 shadow-xl" aria-label="Accept Recommendation" onClick={handleAccept}>
+                  <span className="material-symbols-outlined text-4xl group-hover:text-white">check</span>
+                </button>
               </div>
-            </div>
-     
-
-            {/* Action Buttons */}
-            <div className="button-container flex justify-center gap-6 mt-4">
-              <button className="group flex items-center justify-center w-16 h-16 bg-gray-800 rounded-full border-4 border-red-600 hover:bg-red-600 transition-all duration-300 transform hover:scale-110 hover:rotate-12 shadow-xl" aria-label="Reject Recommendation" onClick={handleHide}>
-                <span className="material-symbols-outlined text-4xl group-hover:text-white">close</span>
-              </button>
-              <button className="group flex items-center justify-center w-16 h-16 bg-gray-800 rounded-full border-4 border-green-500 hover:bg-green-500 transition-all duration-300 transform hover:scale-110 hover:rotate-12 shadow-xl" aria-label="Accept Recommendation" onClick={handleAccept}>
-                <span className="material-symbols-outlined text-4xl group-hover:text-white">check</span>
-              </button>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
